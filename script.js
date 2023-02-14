@@ -1,4 +1,4 @@
-const DEBUG = true;
+const DEBUG = false;
 function debug(lastPressed) {console.table({lights, currentState, currentValue, storedValue, currentOperator, lastPressed})}
 
 let lights = true;
