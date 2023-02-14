@@ -1,0 +1,125 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-size: 28px;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  transition: background-color 0.15s ease-out;
+}
+
+.lightsOut {
+  background-color: #111111;
+}
+
+.calculator {
+  display: grid;
+  grid-template-columns: repeat(4, 72px);
+  grid-template-rows: 64px repeat(5, 48px);
+  gap: 4px;
+}
+
+.screen {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: right;
+  background-color: inherit;
+  border: 1px black solid;
+  padding: 8px;
+  font-size: 48px;
+  font-family: monospace;
+}
+
+.screen:disabled {
+  background-color: inherit;
+  border: 1px black solid;
+}
+
+button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center; 
+  border: 1px solid black;
+  user-select: none;
+}
+
+button:hover {
+  border: 1px solid black;
+  filter: brightness(110%);
+  cursor: pointer;
+}
+
+button:active {
+  border: 1px solid black;
+  filter: brightness(90%);
+}
+
+button:disabled {
+  color: black;  
+  filter: brightness(10%);
+  transition: filter 0.15s ease-out;
+  cursor: default;
+}
+
+.blink {
+  filter: brightness(10%);
+  transition: filter 0.15s ease-out;
+  animation: blinker 1s 1s infinite;
+  z-index: 1;
+}
+
+.blink:active, .blink:hover {  
+  filter: none;
+  box-shadow: 0 0 50px 5px salmon;
+}
+
+@keyframes blinker {
+  20% {
+    filter: none;
+    box-shadow: 0 0 50px 5px salmon;
+  }
+
+  80% {
+    filter: none;
+    box-shadow: 0 0 50px 5px salmon;
+  }
+}
+
+sup {
+  vertical-align: super;
+  font-size: 16px;
+}
+
+.operator {
+  background-color: lightgoldenrodyellow;
+}
+
+.operator:focus {
+  border-width: 2px;
+  filter: brightness(110%)
+}
+
+.operator:focus:active {
+  filter: brightness(90%)
+}
+
+.function {
+  background-color: salmon;
+}
+
+.number, .point {
+  background-color: lightsteelblue;
+}
+
+.buttons > button {
+  font-size: 32px;
+}
+
+/* .calculator {
+} */
