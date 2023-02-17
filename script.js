@@ -3,7 +3,23 @@ function debug(lastPressed) {console.table({lights, currentState, currentValue, 
 
 let lights = true;
 let screen = document.querySelector(".screen");
+let numbers = document.querySelectorAll(".number");
+numbers.forEach(element => {
+  element.addEventListener("click", event => {
+    number(element.id);
+  })
+});
+document.querySelectorAll(".operator").forEach(element => {
+  element.addEventListener("click", event => {
+    operator(element.id)
+  })
+})
+document.querySelector("#clear").addEventListener("click", allClear);
+document.querySelector("#equals").addEventListener("click", equals);
+document.querySelector("#plusminus").addEventListener("click", plusminus);
+document.querySelector("#delete").addEventListener("click", del);
 
+// Calculator state
 const STATE = {
   // The calculator is clear, no previous results
   CLEAR: "CLEAR",
@@ -21,22 +37,66 @@ var storedValue;
 var repeatedOperand;
 var currentValue;
 var currentOperator;
+var numbersDisabled;
 
 allClear();
+// End of setup
 
-function renderScreen() {
-  screen.textContent = currentValue;
+// Function to render the screen content.
+// Also serves to prevent value from being too large to display
+function render() {
+  let value = currentValue;
+  if (!numbersDisabled && lights && value.length > 9 && (currentState === STATE.FIRST || currentState === STATE.SECOND)) {
+    numbersDisabled = true;
+    numbers.forEach(element => element.disabled = true)
+  } else if (numbersDisabled) {
+    numbersDisabled = false;
+    numbers.forEach(element => element.disabled = false)
+  }
+  if (Math.abs(value) === Infinity) {
+    currentState = STATE.CLEAR;
+    allClear();
+  }
+  screen.textContent = value;
+
 }
 
-function toggleLights() {
+// Flips the sign of the current entered value
+function plusminus() {
+  currentValue = (currentValue*(-1)).toString();
   if (DEBUG) debug();
-  lights ^= true;
-  document.querySelectorAll('button:not(#clear)').forEach(b => b.disabled ^= true);
-  document.querySelector('#clear').classList.toggle("blink")
-  document.body.classList.toggle("lightsOut");  
-  if (!lights) {
-    screen.textContent = "";
+  render();
+}
+
+// Deletes last entered digit
+function del() {
+  currentValue = currentValue.slice(0, -1);
+  if (currentValue.length === 0) {
+    switch (currentState) {
+      case STATE.FIRST:
+        currentState = STATE.CLEAR;
+        break;
+      case STATE.SECOND:
+        currentState = STATE.OPERATOR;
+        break;
+    }
+    currentValue = "0";
   }
+  if (DEBUG) debug();
+  render();
+}
+
+// Clears calculator state
+function allClear() {
+  currentState = STATE.CLEAR;
+  storedValue = 0;
+  currentValue = "0";
+  currentOperator = null;
+  if (DEBUG) debug();
+  if (!lights) {
+    toggleLights();
+  }
+  render();
 }
 
 // Called when a digit is pressed
@@ -63,7 +123,7 @@ function number(value) {
       currentValue = currentValue.toString().concat(value);
   }
   if (DEBUG) debug();
-  renderScreen()
+  render()
 }
 
 // Called when an operator is pressed
@@ -84,7 +144,7 @@ function operator(value) {
   currentOperator = value;
   currentState = STATE.OPERATOR;
   if (DEBUG) debug();
-  renderScreen()
+  render()
 }
 
 function equals() {
@@ -92,22 +152,22 @@ function equals() {
     case STATE.ANSWER:
       storedValue = currentValue;
       currentValue = repeatedOperand;
-      currentValue = evaluate().toString();
+      currentValue = evaluate();
       break;
     case STATE.OPERATOR:
       storedValue = currentValue;
     default:
       repeatedOperand = currentValue;
-      currentValue = evaluate().toString();
+      currentValue = evaluate();
       break;
   }
-  currentState = STATE.ANSWER;
   if (currentValue === "lightsoff") {
     toggleLights();
     return;
   } 
+  currentState = STATE.ANSWER;
   if (DEBUG) debug();
-  renderScreen();
+  render();
 }
 
 // General evaluation function
@@ -128,7 +188,7 @@ function evaluate() {
       break;
     case "divide":
       if (b === 0) {
-        result = "lightsoff"
+        return "lightsoff";
       } else {
         result = a / b;
       }
@@ -139,51 +199,39 @@ function evaluate() {
     default:
       result = b;
   }
+  // Fit result to screen
+  let magnitude = x === 0 ? 0 : Math.floor(Math.log10(Math.abs(x)) + 1);
+  let exponent = 10 - magnitude;
+  let power = Math.pow(10,exponent);
+  result = Math.round(x*power)/power;
 
+  if (result >= 10_000_000_000) {
+    result *= Infinity
+  }
   return result;
 }
 
-function percent() {
-  currentValue = (currentValue/100).toString();
+// Creative error display for division by zero
+function toggleLights() {
   if (DEBUG) debug();
-  renderScreen();
-}
-
-function del() {
-  currentValue = currentValue.slice(0, -1);
-  if (currentValue.length === 0) {
-    switch (currentState) {
-      case STATE.FIRST:
-        currentState = STATE.CLEAR;
-        break;
-      case STATE.SECOND:
-        currentState = STATE.OPERATOR;
-        break;
-    }
-    currentValue = "0";
-  }
-  if (DEBUG) debug();
-  renderScreen();
-}
-
-function allClear() {
-  currentState = STATE.CLEAR;
-  storedValue = 0;
-  currentValue = "0";
-  currentOperator = null;
-  if (DEBUG) debug();
+  lights ^= true;
+  document.querySelectorAll('button:not(#clear)').forEach(b => {
+    b.disabled ^= true;
+    b.classList.toggle("lightsOut");
+  });
+  document.querySelector('#clear').classList.toggle("blink")
+  document.body.classList.toggle("lightsOut");  
   if (!lights) {
-    toggleLights();
+    screen.textContent = "";
   }
-  renderScreen();
 }
 
 document.querySelector("#clear").addEventListener("click", allClear);
 document.querySelector("#equals").addEventListener("click", equals);
-document.querySelector("#percent").addEventListener("click", percent);
+document.querySelector("#plusminus").addEventListener("click", plusminus);
 document.querySelector("#delete").addEventListener("click", del);
 
-document.querySelectorAll(".number").forEach(element => {
+numbers.forEach(element => {
   element.addEventListener("click", event => {
     number(element.id);
   })
